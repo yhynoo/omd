@@ -1,5 +1,13 @@
 const screen = document.getElementsByClassName('screen')[0]
 
+// -- GAME SETUP
+const mapData = maps
+
+let currentView = 2
+let currentMap = mapData[0]
+let map = currentMap.map
+let players = currentMap.players
+
 // -- GLOBAL VARIABLES
 let currentPlayer = 0
 let currentScreenPosition = [0, 0]
@@ -13,7 +21,7 @@ let currentTemplate = null
 let isAiming = false
 let isCoolingDown = []
 
-let resourceCooldown = 0;
+let resourceCooldown = 0
 let movesLeft = 30
 let mapResources = []
 let warningLine = null
@@ -99,15 +107,19 @@ function playExplosion(row, col) {
 }
 
 function updateScreen() {
+    if (currentView === 1) {
+        screen.innerHTML = `ONE MORE DAY v. 0.1`
+
+        // here goes the main menu logic
+        return
+    }
+
     // Status panel
     let playerInfo = (!isVisible || currentSelectedUnit) ? `Player ${currentPlayer + 1}` : ' '.repeat(8)
-    //let topPanel = `${playerInfo} ${movesLeft.toString().padStart(2, ' ')} action points left` + ` `.repeat(31) + `$: ${players[currentPlayer].money.toString().padStart(5, ' ')} | *: ${players[currentPlayer].energy.toString().padStart(5, ' ')}\n\n`
     let topPanel = `${playerInfo}` + ` `.repeat(54) + `$: ${players[currentPlayer].money.toString().padStart(5, ' ')} | *: ${players[currentPlayer].energy.toString().padStart(5, ' ')}\n\n`
 
     // Update the map with unit positions
-    let mapWithUnits = updateMapWithUnits(map, players)
-
-    // Include map content from mapWithUnits
+    let mapWithUnits = updateMapWithUnits(currentMap.map, players)
     let mapContent = mapWithUnits.slice(currentScreenPosition[0], currentScreenPosition[0] + 20) // Limit the number of rows displayed
     mapContent = mapContent.map(row => row.slice(currentScreenPosition[1], currentScreenPosition[1] + 81)) // Limit the number of characters displayed per row
     let mapPanel = mapContent.join('\n') + '\n'
@@ -226,6 +238,14 @@ function checkIds() {
     }, 0)
 }
 
+function checkUnitsPerSide() {
+    if (players[currentPlayer].units.length >= 16) {
+        warningLine = 'Unit limit reached.'
+        return true
+    }
+    return false
+}
+
 function deselectUnit() {
     isAiming = false
     isTemplating = false
@@ -293,6 +313,11 @@ function updateResources() {
 
 // -- handling user input
 function handleKeyDown(event) {
+    if (currentView === 1) {
+        // here go main menu options
+        return
+    }
+    
     if (isGameOver) return;
 
     warningLine = null;
@@ -311,7 +336,8 @@ function handleKeyDown(event) {
         'ArrowRight': () => handleArrowKey(0, 1),
         'Escape': () => deselectUnit(),
         'Enter': () => handleEnterKey(),
-        'Shift': () => handleShiftKey(),
+        'Shift': () => handleUnitSelection(1),
+        'Control': () => handleUnitSelection(-1),
         ' ': () => togglePlayer()
     }
 
@@ -331,7 +357,6 @@ function handleAiming() {
     if (!currentAimPosition) currentAimPosition = currentSelectedUnit.position;
     isAiming = true;
 }
-
 
 function handleAddVehicleKey(vehicleType) {
     if (currentSelectedUnit && currentSelectedUnit.unitType === units['workshop']) {
@@ -376,18 +401,21 @@ function handleEnterKey() {
     }
 }
 
-function handleShiftKey() {
-    if (isAiming) isAiming = false
-    if (isTemplating) isTemplating = false
-
+function handleUnitSelection(direction) {
     if (players[currentPlayer].units.length > 0) {
-        if (currentSelectedUnit === null) currentSelectedUnit = players[currentPlayer].units[0]
-        else {
-            const currentIndex = players[currentPlayer].units.findIndex(unit => unit === currentSelectedUnit)
-            const nextIndex = (currentIndex + 1) % players[currentPlayer].units.length
-            currentSelectedUnit = players[currentPlayer].units[nextIndex]
-        }
+        const currentIndex = getCurrentUnitIndex()
+        let newIndex = (currentIndex + direction + players[currentPlayer].units.length) % players[currentPlayer].units.length
+        
+        currentSelectedUnit = players[currentPlayer].units[newIndex]
         centerScreenOn(currentSelectedUnit.position[0], currentSelectedUnit.position[1])
+    }
+}
+
+function getCurrentUnitIndex() {
+    if (currentSelectedUnit === null) {
+        return -1 // If no unit is selected, return -1
+    } else {
+        return players[currentPlayer].units.findIndex(unit => unit === currentSelectedUnit)
     }
 }
 
@@ -460,6 +488,9 @@ function getAvailableCommands(unit) {
 }
 
 function commandAddBuilding(type, row, col) {
+    // Check for the units limit
+    if (checkUnitsPerSide()) return
+    
     // Check if there is enough resources
     if (players[currentPlayer].money < type.cost[0] || players[currentPlayer].energy < type.cost[1]) {
         warningLine = 'Not enough resources.'
@@ -484,6 +515,9 @@ function commandAddBuilding(type, row, col) {
 }
 
 function commandAddVehicle(type, row, col) {
+    // Check for the units limit
+    if (checkUnitsPerSide()) return
+
     // Check if there is enough resources
     if (players[currentPlayer].money < type.cost[0] || players[currentPlayer].energy < type.cost[1]) {
         warningLine = 'Not enough resources.'
