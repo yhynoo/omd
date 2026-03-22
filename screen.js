@@ -1,14 +1,17 @@
 const screen = document.getElementsByClassName('screen')[0]
 
+
 // -- GAME SETUP
 const mapData = maps
 
-let currentView = 2
 let currentMap = mapData[0]
 let map = currentMap.map
 let players = currentMap.players
 
 // -- GLOBAL VARIABLES
+let isChoosingMap = true
+let selectedMapIndex = 0
+
 let currentPlayer = 0
 let currentScreenPosition = [0, 0]
 let currentAimPosition = null           // for drawing the ! for aiming
@@ -28,6 +31,20 @@ let warningLine = null
 let isGameOver = false
 
 // -- view
+
+function updateMenuScreen() {
+    let output = "\n  One More Day, v. 1.0\n\n\n\n      Choose a map:\n\n"
+
+    mapData.forEach((m, i) => {
+        if (i === selectedMapIndex) {
+            output += `        > ${m.name}\n`
+        } else {
+            output += `          ${m.name}\n`
+        }
+    })
+
+    screen.innerHTML = output
+}
 
 function centerScreenOn(unitRow, unitCol) {
     // Calculate the new screen position to center the selected unit
@@ -88,7 +105,7 @@ function moveTemplate(deltaRow, deltaCol, type) {
 }
 
 function playExplosion(row, col) {
-    document.removeEventListener('keydown', handleKeyDown);
+    document.removeEventListener('keydown', handleGameControls);
 
     let originalTerrain = map[row][col]
     let frames = ['.', '*', originalTerrain]
@@ -101,19 +118,12 @@ function playExplosion(row, col) {
 
         if (frameIndex >= frames.length) {
             clearInterval(explosionInterval)
-            document.addEventListener('keydown', handleKeyDown)
+            document.addEventListener('keydown', handleGameControls)
         }
     }, 150)
 }
 
 function updateScreen() {
-    if (currentView === 1) {
-        screen.innerHTML = `ONE MORE DAY v. 0.1`
-
-        // here goes the main menu logic
-        return
-    }
-
     // Status panel
     let playerInfo = (!isVisible || currentSelectedUnit) ? `Player ${currentPlayer + 1}` : ' '.repeat(8)
     let topPanel = `${playerInfo}` + ` `.repeat(54) + `$: ${players[currentPlayer].money.toString().padStart(5, ' ')} | *: ${players[currentPlayer].energy.toString().padStart(5, ' ')}\n\n`
@@ -312,14 +322,10 @@ function updateResources() {
 }
 
 // -- handling user input
-function handleKeyDown(event) {
-    if (currentView === 1) {
-        // here go main menu options
-        return
-    }
-    
-    if (isGameOver) return;
+function handleGameControls(event) {
+    if (isChoosingMap) return handleMapMenuControls(event)
 
+    if (isGameOver) return;
     warningLine = null;
 
     const keyActions = {
@@ -346,6 +352,7 @@ function handleKeyDown(event) {
     updateScreen()
 }
 
+// -- specific instructions
 function handleAiming() {
     if (!currentSelectedUnit || currentSelectedUnit.unitType.isBuilding && !(currentSelectedUnit.unitType === units['turret'] && !isAiming)) return;
     
@@ -545,7 +552,52 @@ function commandAddVehicle(type, row, col) {
     })
 }
 
-// -- Main game loop:
+// -- menu controls
+function handleMapMenuControls(event) {
+    if (event.key === "ArrowUp") {
+        selectedMapIndex = (selectedMapIndex - 1 + maps.length) % maps.length
+        updateMenuScreen()
+    }
+
+    if (event.key === "ArrowDown") {
+        selectedMapIndex = (selectedMapIndex + 1) % maps.length
+        updateMenuScreen()
+    }
+
+    if (event.key === "Enter") {
+        loadSelectedMap()
+    }
+}
+
+function loadSelectedMap() {
+    isChoosingMap = false
+
+    currentMap = maps[selectedMapIndex]
+    map = currentMap.map
+    players = currentMap.players
+
+    // reset game state
+    currentPlayer = 0
+    currentScreenPosition = [0, 0]
+    currentSelectedUnit = null
+    isAiming = false
+    isTemplating = false
+    isCoolingDown = []
+    movesLeft = 30
+    mapResources = []
+    warningLine = null
+    isGameOver = false
+
+    // center on depot
+    const depot = players[0].units.find(u => u.unitType === units['depot'])
+    if (depot) centerScreenOn(depot.position[0], depot.position[1])
+
+    updateScreen()
+}
+
+// -- main game loop:
+updateMenuScreen()
+
 const switchPlayer = setInterval(gameLoop, 500)
 
 function checkIfGameOver() {
@@ -558,10 +610,11 @@ function checkIfGameOver() {
 }
 
 function gameLoop() {
+    if (isChoosingMap) return
     checkIfGameOver()
     toggleUnitVisibility()
     updateScreen()
 }
 
 // Add event listener for keydown events
-document.addEventListener('keydown', handleKeyDown)
+document.addEventListener('keydown', handleGameControls)
