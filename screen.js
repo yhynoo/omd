@@ -33,7 +33,7 @@ let isGameOver = false
 // -- view
 
 function updateMenuScreen() {
-    let output = "\n  One More Day, v. 1.0\n\n\n\n      Choose a map:\n\n"
+    let output = "\n  One More Day, v. 1.0\n\n"
 
     mapData.forEach((m, i) => {
         if (i === selectedMapIndex) {

@@ -58,7 +58,7 @@ const maps = [
         ]
     },
     {
-        'name': 'Last Outpost',
+        'name': 'Defend the Outpost',
         'resourceAmount': 3, // the lower the number, the more resources are generated on the map
         'map': [
             ':                                   . . .                        ::                      :    ',
@@ -107,6 +107,58 @@ const maps = [
                     {   'id': 6,    'health': 5,    'unitType': units['human'],     'position': [21, 50]},
                     {   'id': 7,    'health': 5,    'unitType': units['human'],     'position': [20, 81]},
                     {   'id': 8,    'health': 5,    'unitType': units['human'],     'position': [18, 65]}
+                ]
+            }
+        ]
+    },
+    {
+        'name': 'Glacier of Tears',
+        'resourceAmount': 2, // the lower the number, the more resources are generated on the map
+        'map': [
+            '                                                                                              ',
+            '                                                                                              ',
+            '                                                                                              ',
+            '                                                                                           :: ',
+            '::                           ::   ::::                                  ::::             ::   ',
+            '  ::::                   ::::  :::                         :::::      ::    ::::              ',
+            '                     ::::                                       ::::::                        ',
+            '.                                                                                             ',
+            '                                                          . .                                 ',
+            ' . .                                                       . .              .                 ',
+            '. . . . :: .                    . . .                             . .    . . .                ',
+            ' .     . .                     . .                             . . . :: . .                   ',
+            '        . .     . . .                                          . .  ::: . .                   ',
+            '              . . .                            . .                   . . . . .                ',
+            '                                                                       . .                    ',
+            '                       . .                                                      . .           ',
+            '                                                                                       . .    ',
+            '                                                            ::::                         . . .',
+            '  ::::             ::::                                  :::    ::::                      . . ',
+            '::             ::::    ::::::   ::::                 ::::                                    .',
+            '            :::              :::                                                    ::    ::::',
+            '                                                                                      ::::    ',
+            '                                                                                              ',
+            '                                                                                              '
+        ],
+        'players': [
+            {
+                'money': 10,
+                'energy': 0,
+                'units': [
+                    {   'id': 0,    'health': 15,   'unitType': units['depot'],     'position': [1, 60]  },
+                    {   'id': 1,    'health': 5,    'unitType': units['human'],     'position': [2, 50] },
+                    {   'id': 2,    'health': 5,    'unitType': units['human'],     'position': [3, 82] },
+                    {   'id': 3,    'health': 5,    'unitType': units['human'],     'position': [4, 46] }
+                ]
+            },
+            {
+                'money': 10,
+                'energy': 0,
+                'units': [
+                    {   'id': 4,    'health': 15,   'unitType': units['depot'],     'position': [22, 20]},
+                    {   'id': 5,    'health': 5,    'unitType': units['human'],     'position': [20, 8]},
+                    {   'id': 6,    'health': 5,    'unitType': units['human'],     'position': [20, 40]},
+                    {   'id': 7,    'health': 5,    'unitType': units['human'],     'position': [21, 46]}
                 ]
             }
         ]
